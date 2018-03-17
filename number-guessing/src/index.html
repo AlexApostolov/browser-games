@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Number guessing game</title>
+
+  <body>
+    <style>
+      #stage {
+        width: 300px;
+        height: 33px;
+        position: relative;
+      }
+
+      #scale {
+        width: 300px;
+        height: 33px;
+        position: absolute;
+        top: 0px;
+        left: 0px;
+        background-image: url(../images/scale.png);
+      }
+
+      #arrow {
+        width: 17px;
+        height: 22px;
+        position: absolute;
+        top: 0px;
+        left: 0px;
+        background-image: url(../images/arrow.png);
+
+        /*Transition*/
+        -webkit-transition: left 0.5s ease-out 0s;
+        -moz-transition: left 0.5s ease-out 0s;
+        transition: left 0.5s ease-out 0s;
+      }
+    </style>
+</head>
+
+<div id="stage">
+  <div id="scale"></div>
+  <div id="arrow"></div>
+</div>
+
+<p id="output">I am thinking of a number between 0 and 99.</p>
+<input id="input" placeholder="Enter your guess..." type="text" autofocus>
+<button>guess</button>
+<script type="text/javascript">
+  // Initialize game variables
+  var mysteryNumber = Math.floor(Math.random() * 100);
+  var playersGuess = 0;
+  // Variables for game state.
+  var guessesRemaining = 10;
+  var guessesMade = 0;
+  var gameState = "";
+  var gameWon = false;
+
+  // The input and output fields
+  var input = document.querySelector("#input");
+  var output = document.querySelector("#output");
+
+  // The button
+  var button = document.querySelector("button");
+  button.style.cursor = "pointer";
+  button.addEventListener("click", clickHandler, false);
+
+  // The arrow
+  var arrow = document.querySelector("#arrow");
+
+  function render() {
+    //Position the arrow
+    //Multipy the players guess by 3 to get the corrent pixel position on the scale.
+    arrow.style.left = playersGuess * 3 + "px";
+  }
+
+  window.addEventListener("keydown", keydownHandler, false);
+  function keydownHandler(event) {
+    if (event.keyCode === 13) {
+      validateInput();
+    }
+  }
+  function clickHandler() {
+    validateInput();
+    playGame();
+  }
+
+  function validateInput() {
+    // NOTE: Could use the HTML5 Forms API here too.
+    playersGuess = parseInt(input.value);
+    if (isNaN(playersGuess)) {
+      output.innerHTML = "Please enter a number."
+    } else {
+      playGame();
+    }
+  }
+
+  function playGame() {
+    // Handle game state.
+    guessesRemaining--;
+    guessesMade++;
+    gameState = " Guess: " + guessesMade + ", Remaining: " + guessesRemaining;
+    // Force strings from input field to become numbers.
+
+    if (playersGuess > mysteryNumber) {
+      output.innerHTML = "That's too high." + gameState;
+      // Check for the end of game.
+      if (guessesRemaining < 1) {
+        endGame();
+      }
+    } else if (playersGuess < mysteryNumber) {
+      output.innerHTML = "That's too low." + gameState;
+      // Check for the end of game.
+      if (guessesRemaining < 1) {
+        endGame();
+      }
+    } else if (playersGuess === mysteryNumber) {
+      gameWon = true;
+      endGame();
+    }
+    render();
+  }
+
+  function endGame() {
+    if (gameWon) {
+      output.innerHTML = "Yes, it's " + mysteryNumber + "!" + "<br>" + "It only took you " + guessesMade + " guesses.";
+    }
+    else {
+      output.innerHTML = "No more guesses left!" + "<br>" + "The number was: " + mysteryNumber + ".";
+    }
+    // Disable the button.
+    button.removeEventListener("click", clickHandler, false);
+    button.disabled = true;
+    // Disable the enter key.
+    window.removeEventListener("keydown", keydownHandler, false);
+    // Disable the input field.
+    input.disabled = true;
+  }
+</script>
+</body>
+
+</html>

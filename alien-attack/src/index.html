@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <link rel="stylesheet" href="alienAttack.css">
+  <title>Alien Attack</title>
+</head>
+
+<section id="game">
+  <h1>Alien Attack!</h1>
+  <div id="stage">
+    <div id="background"></div>
+    <div id="cannon"></div>
+    <div id="missile"></div>
+    <div id="alien"></div>
+    <div id="explosion"></div>
+  </div>
+
+  <p id="output">Enter the X and Y position (0-300), then click fire.</p>
+  <input id="inputX" type="text" placeholder="X...">
+  <input id="inputY" type="text" placeholder="Y...">
+  <button>fire!</button>
+
+  <script>
+    // Game variables
+    // Store position of the alien on the stage. Starting position has the same values as in CSS;
+    // however, when play commences we will use these variables to change the CSS values to move the alien.
+    var alienX = Math.floor(Math.random() * 280);
+    var alienY = 20;
+    // Store Player's position guesses
+    var guessX = 0;
+    var guessY = 0;
+    var shotsRemaining = 8;
+    var shotsMade = 0;
+    var gameState = "";
+    var gameWon = false;
+
+    // The game objects
+    var cannon = document.querySelector("#cannon");
+    var alien = document.querySelector("#alien");
+    var missile = document.querySelector("#missile");
+    var explosion = document.querySelector("#explosion");
+
+    // The input and output fields
+    var inputX = document.querySelector("#inputX");
+    var inputY = document.querySelector("#inputY");
+    var output = document.querySelector("#output");
+
+    // The button
+    var button = document.querySelector("button");
+    button.style.cursor = "pointer";
+    button.addEventListener("click", clickHandler, false);
+
+    // Listen for enter key presses.
+    window.addEventListener("keydown", keydownHandler, false);
+
+    function clickHandler() {
+      validateInput();
+    }
+
+    function keydownHandler(event) {
+      if (event.keyCode === 13) {
+        validateInput();
+      }
+    }
+
+    function validateInput() {
+      guessX = parseInt(inputX.value);
+      guessY = parseInt(inputY.value);
+
+      if (isNaN(guessX) || isNaN(guessY)) {
+        output.innerHTML = "Please enter a number.";
+      } else if (guessX > 300 || guessY > 300) {
+        output.innerHTML = "Please enter a number less than 300.";
+      } else {
+        playGame();
+      }
+    }
+    // The job of moving the image of the alien & other game objects is done by calling the render fn.
+    // Here we're using the less complicated positioning with the top left corner points, instead of their center points.
+    function render() {
+      // Position the alien
+      alien.style.left = alienX + "px";
+      alien.style.top = alienY + "px";
+
+      // Position the cannon
+      cannon.style.left = guessX + "px";
+
+      // Position the missile
+      missile.style.left = guessX + "px";
+      missile.style.top = guessY + "px";
+
+      if (gameWon) {
+        // Display the explosion & hide the alien if it's been destroyed
+        // Display explosion
+        explosion.style.display = "block";
+        explosion.style.left = alienX + "px";
+        explosion.style.top = alienY + "px";
+
+        // Hide the alien & missile
+        alien.style.display = "none";
+        missile.style.display = "none";
+      }
+    }
+
+    // When Player clicks button, the playGame fn first calculates the shotsRemaining & shotsMade to update the gameState
+    // fn also copies the inputX & inputY values from the textfields into the guessX & guessY variables.
+    function playGame() {
+      shotsRemaining = shotsRemaining - 1;
+      shotsMade = shotsMade + 1;
+      gameState = " Shots: " + shotsMade + ", Remaining: " + shotsRemaining;
+
+      //Find out whether the player's x and y guesses are inside the alien's area accounting for the 
+      // alien's 20px height & width (alien posiion is just its top left corner).
+      if (guessX >= alienX && guessX <= alienX + 20) {
+        // Yes, it's within the X range, so now let's check the Y range
+        if (guessY >= alienY && guessY <= alienY + 20) {
+          // Alien hit!
+          gameWon = true;
+          endGame();
+        }
+      } else {
+        output.innerHTML = "Miss!" + gameState;
+        // Check for the end of the game
+        if (shotsRemaining < 1) {
+          endGame();
+        }
+      }
+      //Update the alien's position if the game hasn't yet been won.
+      if (!gameWon) {
+        // Alien is 20 pixels wide, so giving it a random range of between 0 & 280 means that its right side will never cross the right side of the background keeping it within playingfield.
+        alienX = Math.floor(Math.random() * 281);
+        // Move alien 30 closer to Earth.
+        alienY += 30;
+      }
+      // Render the new game state
+      render();
+      console.log("X: " + alienX);
+      console.log("Y: " + alienY);
+    }
+    function endGame() {
+      if (gameWon) {
+        output.innerHTML
+          = "Hit! You saved the earth!" + "<br>"
+          + "It only took you " + shotsMade + " shots.";
+      }
+      else {
+        output.innerHTML
+          = "You lost!" + "<br>"
+          + "The earth has been invaded!";
+      }
+
+      //Disable the button
+      button.removeEventListener("click", clickHandler, false);
+      button.disabled = true;
+
+      //Disable the enter key
+      window.removeEventListener("keydown", keydownHandler, false);
+
+      //Disable the input fields
+      inputX.disabled = true;
+      inputY.disabled = true;
+    }
+  </script>
+</section>
+
+</html>
