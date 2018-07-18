@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Monster Smash</title>
+</head>
+
+<body>
+  <canvas width="64" height="64"></canvas>
+  <script>
+    // Get a reference to the canvas
+    var canvas = document.querySelector('canvas');
+    // Get a reference to the canvas's drawing surface
+    var drawingSurface = canvas.getContext('2d');
+    // Hold the monsterImage in a created invisible <img>. You can now load and access any image using this variable.
+    var monsterImage = new Image();
+    // Add a listener to the image to call the render function when the image has finished loaded.
+    // This is needed to solve a technical issue. The image won't load instantly; 
+    // it takes a few milliseconds for the program to load it, and we don't want the rest of the program to continue to run without a visible image.
+    monsterImage.addEventListener('load', loadHandler, false);
+    // Assign the image's src property to the image you want to load.
+    monsterImage.src = '../images/monster.png';
+    function loadHandler() {
+      // Draw the monsterImage onto the drawingSurface using canvas's drawing surface method (2D context): drawImage.
+      // Pass in the image you want to display, then the image's x and y positions on the canvas.
+      // drawingSurface.drawImage(monsterImage, 0, 0);
+      /*
+      // You can also tell drawImage to draw only a specific section of the image, e.g. just the eye.
+      drawingSurface.drawImage(
+        monsterImage, // Image name
+        3, 12, 28, 28, // Specify which part of the original source image (coords & size) should be copied
+        0, 0, 28, 28 // onto the destination area of the canvas.
+      );
+      */
+      // You can also change the image's size, e.g. to make the monster shrink to only the bottom right quarter of the canvas. 
+      drawingSurface.drawImage(
+        monsterImage,
+        0, 0, 64, 64,
+        32, 32, 32, 32
+      );
+    }
+  </script>
+</body>
+
+</html>
