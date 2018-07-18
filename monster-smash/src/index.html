@@ -11,6 +11,16 @@
 <body>
   <canvas width="64" height="64"></canvas>
   <script>
+    var monster = {
+      // Use a single png to alternate between two monster states
+      image: '../images/monsterStates.png',
+      // The monster's states
+      NORMAL: 0,
+      SCARED: 1,
+
+      // Set its initial state
+      state: 0
+    };
     // Get a reference to the canvas
     var canvas = document.querySelector('canvas');
     // Get a reference to the canvas's drawing surface
@@ -20,28 +30,56 @@
     // Add a listener to the image to call the render function when the image has finished loaded.
     // This is needed to solve a technical issue. The image won't load instantly; 
     // it takes a few milliseconds for the program to load it, and we don't want the rest of the program to continue to run without a visible image.
-    monsterImage.addEventListener('load', loadHandler, false);
-    // Assign the image's src property to the image you want to load.
-    monsterImage.src = '../images/monster.png';
-    function loadHandler() {
-      // Draw the monsterImage onto the drawingSurface using canvas's drawing surface method (2D context): drawImage.
-      // Pass in the image you want to display, then the image's x and y positions on the canvas.
-      // drawingSurface.drawImage(monsterImage, 0, 0);
-      /*
-      // You can also tell drawImage to draw only a specific section of the image, e.g. just the eye.
-      drawingSurface.drawImage(
-        monsterImage, // Image name
-        3, 12, 28, 28, // Specify which part of the original source image (coords & size) should be copied
-        0, 0, 28, 28 // onto the destination area of the canvas.
-      );
-      */
-      // You can also change the image's size, e.g. to make the monster shrink to only the bottom right quarter of the canvas. 
-      drawingSurface.drawImage(
-        monsterImage,
-        0, 0, 64, 64,
-        32, 32, 32, 32
-      );
+    monsterImage.addEventListener('load', render, false);
+    // Assign the image's src property to the image you want to load. This image will be overwritten by monsterStates.png
+    monsterImage.src = monster.image;
+
+    // Change the monster's state by pressing and releasing a key
+    window.addEventListener('keydown', keydownHandler, false);
+    window.addEventListener('keyup', keyupHandler, false);
+
+    function keydownHandler(event) {
+      // When a key is pressed, change the monster's state to SCARED and render it.
+      monster.state = monster.SCARED;
+      render();
     }
+
+    function keyupHandler(event) {
+      // When a key is released, change the monster's state back to NORMAL and render it.
+      monster.state = monster.NORMAL;
+      render();
+    };
+
+    function render() {
+      // Render the correct state using drawImage() to selectively display the correct section of the image depending on monster's state.
+      switch (monster.state) {
+        case monster.NORMAL:
+          drawingSurface.drawImage(
+            monsterImage,
+            0, 0, 64, 64,
+            0, 0, 64, 64
+          );
+          break;
+        // Remember that the monster's width is 64 pixels so moving x from 0 to 64 gets the scared version of the side by side monsters in the png.
+        case monster.SCARED:
+          // drawImage draws on top of any existing images on the canvas.
+          drawingSurface.drawImage(
+            monsterImage,
+            64, 0, 64, 64,
+            0, 0, 64, 64
+          );
+      }
+      /* Instead of using the switch statement above, we can use math to move the x position 
+      since both monster state images are the same size of 64 pixels and the canvas x position matches. 
+      To get NORMAL state of 0, multiple 0 by 64 and it'll set x to 0, 
+      to get SCARED state of 1, multiply 1 by 64 to get x position of 64 on the canvas. 
+      The added benefit is that additional states can be added in the future without having to change the code! */
+      /* drawingSurface.drawImage(
+        monsterImage,
+        64 * monster.state, 0, 64, 64,
+        0, 0, 64, 64
+      ); */
+    };
   </script>
 </body>
 
