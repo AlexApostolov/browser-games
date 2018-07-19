@@ -9,62 +9,70 @@
 </head>
 
 <body>
-  <canvas width="64" height="64"></canvas>
+  <canvas width="128" height="128"></canvas>
   <script>
     var monster = {
-      // Use a single png to alternate between two monster states
-      image: '../images/monsterStates.png',
-      // The monster's states
-      NORMAL: 0,
-      SCARED: 1,
+      // Use a single png to animate the monster.
+      IMAGE: '../images/frames.png',
+      SIZE: 128,
 
-      // Set its initial state
-      state: 0
+      // The number of animation frames starting from 0 index & the starting frame
+      numberOfFrames: 5,
+      currentFrame: 0,
+
+      // Properties of the animation cell's x & y positions on the spritesheet. Init at 0.
+      sourceX: 0,
+      sourceY: 0,
+
+      // Animation method for monster
+      updateAnimation: function () {
+        // Use currentFrame to find the correct section of the spritesheet to display
+        this.sourceX = this.currentFrame * this.SIZE;
+        this.sourceY = 0;
+
+        // Increase currentFrame by 1 if it's no greater than the total # of frames
+        if (this.currentFrame < this.numberOfFrames) {
+          this.currentFrame++;
+        }
+      }
     };
     // Get a reference to the canvas
     var canvas = document.querySelector('canvas');
     // Get a reference to the canvas's drawing surface
     var drawingSurface = canvas.getContext('2d');
-    // Hold the monsterImage in a created invisible <img>. You can now load and access any image using this variable.
-    var monsterImage = new Image();
+    // Hold the animation spritesheet in a created invisible <img>. You can now load and access any image using this variable.
+    var image = new Image();
     // Add a listener to the image to call the render function when the image has finished loaded.
     // This is needed to solve a technical issue. The image won't load instantly; 
     // it takes a few milliseconds for the program to load it, and we don't want the rest of the program to continue to run without a visible image.
-    monsterImage.addEventListener('load', render, false);
+    image.addEventListener('load', loadHandler, false);
     // Assign the image's src property to the image you want to load. This image will be overwritten by monsterStates.png
-    monsterImage.src = monster.image;
+    image.src = monster.IMAGE;
 
-    // Change the monster's state by pressing and releasing a key
-    window.addEventListener('keydown', keydownHandler, false);
-
-    function keydownHandler(event) {
-      // When a key is pressed, change the monster's state to SCARED and render it.
-      becomeScared();
+    function loadHandler() {
+      // Start the animation
+      updateAnimation();
     }
 
-    function becomeScared() {
-      monster.state = monster.SCARED;
-      setTimeout(becomeNormal, 1000);
-      render();
-    }
-
-    function becomeNormal() {
-      monster.state = monster.NORMAL;
+    function updateAnimation() {
+      // Set a timer to call itself every 300 milliseconds, i.e. recursion.
+      setTimeout(updateAnimation, 300);
+      // Update the monster's animation frames
+      monster.updateAnimation();
+      // Render the animation
       render();
     }
 
     function render() {
-      // Render the correct state using drawImage() to selectively display the correct section of the image depending on monster's state.
+      // It's always important to clear the canvas first when you're doing animation so that any images from the previous frames aren't displayed.
+      // Clear the entire canvas of any previous frames with the clearRect method.
+      drawingSurface.clearRect(0, 0, canvas.width, canvas.height);
 
-      /* Instead of using the switch statement above, we can use math to move the x position 
-      since both monster state images are the same size of 64 pixels and the canvas x position matches. 
-      To get NORMAL state of 0, multiple 0 by 64 and it'll set x to 0, 
-      to get SCARED state of 1, multiply 1 by 64 to get x position of 64 on the canvas. 
-      The added benefit is that additional states can be added in the future without having to change the code! */
+      // Draw the monster's current animation frame.
       drawingSurface.drawImage(
-        monsterImage,
-        64 * monster.state, 0, 64, 64,
-        0, 0, 64, 64
+        image,
+        monster.sourceX, monster.sourceY, monster.SIZE, monster.SIZE,
+        0, 0, monster.SIZE, monster.SIZE
       );
     };
   </script>
