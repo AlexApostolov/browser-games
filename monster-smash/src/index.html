@@ -36,49 +36,36 @@
 
     // Change the monster's state by pressing and releasing a key
     window.addEventListener('keydown', keydownHandler, false);
-    window.addEventListener('keyup', keyupHandler, false);
 
     function keydownHandler(event) {
       // When a key is pressed, change the monster's state to SCARED and render it.
+      becomeScared();
+    }
+
+    function becomeScared() {
       monster.state = monster.SCARED;
+      setTimeout(becomeNormal, 1000);
       render();
     }
 
-    function keyupHandler(event) {
-      // When a key is released, change the monster's state back to NORMAL and render it.
+    function becomeNormal() {
       monster.state = monster.NORMAL;
       render();
-    };
+    }
 
     function render() {
       // Render the correct state using drawImage() to selectively display the correct section of the image depending on monster's state.
-      switch (monster.state) {
-        case monster.NORMAL:
-          drawingSurface.drawImage(
-            monsterImage,
-            0, 0, 64, 64,
-            0, 0, 64, 64
-          );
-          break;
-        // Remember that the monster's width is 64 pixels so moving x from 0 to 64 gets the scared version of the side by side monsters in the png.
-        case monster.SCARED:
-          // drawImage draws on top of any existing images on the canvas.
-          drawingSurface.drawImage(
-            monsterImage,
-            64, 0, 64, 64,
-            0, 0, 64, 64
-          );
-      }
+
       /* Instead of using the switch statement above, we can use math to move the x position 
       since both monster state images are the same size of 64 pixels and the canvas x position matches. 
       To get NORMAL state of 0, multiple 0 by 64 and it'll set x to 0, 
       to get SCARED state of 1, multiply 1 by 64 to get x position of 64 on the canvas. 
       The added benefit is that additional states can be added in the future without having to change the code! */
-      /* drawingSurface.drawImage(
+      drawingSurface.drawImage(
         monsterImage,
         64 * monster.state, 0, 64, 64,
         0, 0, 64, 64
-      ); */
+      );
     };
   </script>
 </body>
