@@ -25,8 +25,60 @@
       sourceX: 0,
       sourceY: 0,
 
+      // A variable to control the direction of the loop. When the object first loads it will run forwards, i.e. monster jumps.
+      forward: true,
+
+      // States: when only the hole is shown, the monster is hiding, otherwise the monster is jumping.
+      HIDING: 0,
+      JUMPING: 1,
+      // The initial state is set to HIDING so that the monster won't be visible when the animation first loads.
+      state: this.HIDING,
+
+      // A property to store the random time. This value will be updated every 300ms.
+      waitTime: undefined,
+
+      // A method to find a random animation time. It will be called when the spritesheet has loaded.
+      findWaitTime: function () {
+        this.waitTime = Math.ceil(Math.random() * 60);
+      },
+
       // Animation method for monster
       updateAnimation: function () {
+        // Figure out the monster's state
+        if (this.waitTime > 0 || this.waitTime === undefined) {
+          this.state = this.HIDING;
+        } else {
+          this.state = this.JUMPING;
+        }
+
+        // Switch the monster's action based on its state
+        switch (this.state) {
+          case this.HIDING:
+            this.currentFrame = 0;
+            this.waitTime--;
+            break;
+          // When waitTime reaches 0, the monster's state switches to JUMPING.
+          case this.JUMPING:
+            // If the last frame has been reached, reverse the loop direction so that the monster falls back down.
+            if (this.currentFrame === this.numberOfFrames) {
+              this.forward = false;
+            }
+            // If the first frame has been reached, set loop to run forwards again, i.e. monster to jump.
+            if (this.currentFrame === 0 && this.forward === false) {
+              // Set forward to true, find a new waitTime, & set state to HIDING before breaking.
+              this.forward = true;
+              this.findWaitTime();
+              this.state = this.HIDING;
+              break;
+            }
+
+            // Add 1 to currentFrame if forward is true, or subtract 1 if it's false
+            if (this.forward) {
+              this.currentFrame++;
+            } else {
+              this.currentFrame--;
+            }
+        }
         // Use frame's correct column & row of the spritesheet to display.
         // As long as the COLUMN is up to date, these formulas will always work.
 
@@ -35,11 +87,6 @@
         // whose numbers will exactly match the X positions of the frame we want to display.
         this.sourceX = Math.floor(this.currentFrame % this.COLUMNS) * this.SIZE;
         this.sourceY = Math.floor(this.currentFrame / this.COLUMNS) * this.SIZE;
-
-        // Increase currentFrame by 1 if it's no greater than the total # of frames
-        if (this.currentFrame < this.numberOfFrames) {
-          this.currentFrame++;
-        }
       }
     };
     // Get a reference to the canvas
@@ -56,6 +103,8 @@
     image.src = monster.IMAGE;
 
     function loadHandler() {
+      // Find a random wait time.
+      monster.findWaitTime();
       // Start the animation
       updateAnimation();
     }
