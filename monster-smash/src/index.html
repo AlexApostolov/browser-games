@@ -28,13 +28,20 @@
       // A variable to control the direction of the loop. When the object first loads it will run forwards, i.e. monster jumps.
       forward: true,
 
-      // States: when only the hole is shown, the monster is hiding, otherwise the monster is jumping.
+      // States: when only the hole is shown, the monster is hiding, otherwise the monster is jumping. Click on monster is a hit.
       HIDING: 0,
       JUMPING: 1,
+      HIT: 2,
       // The initial state is set to HIDING so that the monster won't be visible when the animation first loads.
       state: this.HIDING,
 
-      // A property to store the random time. This value will be updated every 300ms.
+      // Properties needed to help reset the animation: to keep the explosion image for a second and then reset it.
+      // If the monster's state is HIT, updateAnimation will update the resetCounter by 1 every 120ms,
+      // and the animation is reset when the resetCounter equals the timeToReset.
+      timeToReset: 9,
+      resetCounter: 0,
+
+      // A property to store the random time. This value will be updated every 120ms.
       waitTime: undefined,
 
       // A method to find a random animation time. It will be called when the spritesheet has loaded.
@@ -44,11 +51,22 @@
 
       // Animation method for monster
       updateAnimation: function () {
+        // Use frame's correct column & row of the spritesheet to display.
+        // As long as the COLUMN is up to date, these formulas will always work.
+
+        // sourceX represents the column that the frame is on.
+        // Using the modulus operator we cycle through the X positions of the spritesheet's 3 columns,
+        // whose numbers will exactly match the X positions of the frame we want to display.
+        this.sourceX = Math.floor(this.currentFrame % this.COLUMNS) * this.SIZE;
+        this.sourceY = Math.floor(this.currentFrame / this.COLUMNS) * this.SIZE;
+
         // Figure out the monster's state
-        if (this.waitTime > 0 || this.waitTime === undefined) {
-          this.state = this.HIDING;
-        } else {
-          this.state = this.JUMPING;
+        if (this.state !== this.HIT) {
+          if (this.waitTime > 0 || this.waitTime === undefined) {
+            this.state = this.HIDING;
+          } else {
+            this.state = this.JUMPING;
+          }
         }
 
         // Switch the monster's action based on its state
@@ -78,21 +96,33 @@
             } else {
               this.currentFrame--;
             }
+            break;
+          case this.HIT:
+            // Set the current frame to the last one on the spritesheet to display the explosion image.
+            this.currentFrame = 6;
+            // Update the resetCounter by 1.
+            this.resetCounter++;
+            // Reset the animation if the resetCounter equals the timeToReset.
+            if (this.resetCounter === this.timeToReset) {
+              this.state = this.HIDING;
+              this.forward = true;
+              this.currentFrame = 0;
+              // Reset resetCounter to 0 to reuse it for the next explosion.
+              this.resetCounter = 0;
+              this.findWaitTime();
+            }
+            break;
         }
-        // Use frame's correct column & row of the spritesheet to display.
-        // As long as the COLUMN is up to date, these formulas will always work.
-
-        // sourceX represents the column that the frame is on.
-        // Using the modulus operator we cycle through the X positions of the spritesheet's 3 columns,
-        // whose numbers will exactly match the X positions of the frame we want to display.
-        this.sourceX = Math.floor(this.currentFrame % this.COLUMNS) * this.SIZE;
-        this.sourceY = Math.floor(this.currentFrame / this.COLUMNS) * this.SIZE;
       }
     };
     // Get a reference to the canvas
     var canvas = document.querySelector('canvas');
     // Get a reference to the canvas's drawing surface
     var drawingSurface = canvas.getContext('2d');
+
+    // Add a mousedown event listener to the canvas.
+    canvas.addEventListener('mousedown', mousedownHandler, false);
+
     // Hold the animation spritesheet in a created invisible <img>. You can now load and access any image using this variable.
     var image = new Image();
     // Add a listener to the image to call the render function when the image has finished loaded.
@@ -111,11 +141,18 @@
 
     function updateAnimation() {
       // Set a timer to call itself every 300 milliseconds, i.e. recursion.
-      setTimeout(updateAnimation, 300);
+      setTimeout(updateAnimation, 120);
       // Update the monster's animation frames
       monster.updateAnimation();
       // Render the animation
       render();
+    }
+
+    function mousedownHandler(event) {
+      // We want to be able to hit the monster only when it's jumping, not when it's hiding.
+      if (monster.state === monster.JUMPING) {
+        monster.state = monster.HIT;
+      }
     }
 
     function render() {
