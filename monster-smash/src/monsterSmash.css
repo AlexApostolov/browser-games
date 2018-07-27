@@ -31,7 +31,7 @@ canvas {
 
 @font-face {
   font-family: Vanilla;
-  src: url('Vanilla.ttf');
+  src: url('./Vanilla.ttf');
 }
 
 p {
