@@ -12,7 +12,30 @@
 <body>
   <!-- A grid of canvas elements will be inserted into this div. -->
   <div id="stage"></div>
+  <p id="output"></p>
   <script>
+    // The countdown timer starts at 30 & subtracts 1 each second using this object.
+    var gameTimer = {
+      time: 0,
+      interval: undefined,
+
+      start: function () {
+        var self = this;
+        this.interval = setInterval(function () {
+          self.tick();
+        }, 1000);
+      },
+      tick: function () {
+        this.time--;
+      },
+      stop: function () {
+        clearInterval(this.interval);
+      },
+      reset: function () {
+        this.time = 0;
+      }
+    };
+
     var monster = {
       // The size of each frame on the tile sheet & the tile sheet's number of columns.
       // Use a single png to animate the monster.
@@ -139,13 +162,18 @@
     var monsterCanvases = [];
     var monsterDrawingSurfaces = [];
 
-    // A variable to store the animation interval
+    // Variables to store the animation interval, monsters hit, & output for the score
     var interval;
+    var monstersHit = 0;
+    var output = document.querySelector('#output');
 
     function loadHandler() {
       // Plot the grid of monsters onto the canvas by looping through all the rows & columns
       // and creating a monster object, a canvas element, & a drawing surface for each cell in the grid.
       buildMap();
+      // Start the game timer at 30 seconds.
+      gameTimer.time = 30;
+      gameTimer.start();
       // Start the animation
       updateAnimation();
     }
@@ -178,18 +206,37 @@
     }
 
     function updateAnimation() {
-      // Set a timer to call itself every 120 milliseconds, i.e. recursion.
-      setTimeout(updateAnimation, 120);
+      // Call updateAnimation while the timer is greater than zero, otherwise freeze freeze animations.
+      if (gameTimer.time > 0) {
+        // Set a timer to call itself every 120 milliseconds, i.e. recursion.
+        setTimeout(updateAnimation, 120);
+      }
 
       // Loop through all the monsters in the monsters array & call their updateAnimation methods.
       for (var i = 0; i < monsterObjects.length; i++) {
         // Update the monster's own animation frames
         monsterObjects[i].updateAnimation();
       }
+
+      // If time has run out stop animations
+      if (gameTimer.time === 0) {
+        endGame();
+      }
+
       // Render the animation
       render();
     }
 
+    function endGame() {
+      gameTimer.stop();
+      // Remove the mousedown event listeners from the canvas tags so that they can't be clicked.
+      for (var i = 0; i < monsterCanvases.length; i++) {
+        var canvas = monsterCanvases[i];
+        canvas.removeEventListener('mousedown', mousedownHandler, false);
+      }
+    }
+
+    // This handler helps keep track of how monsters have been hit, & change sprite tile to hit graphic.
     function mousedownHandler(event) {
       // Find out which canvas was clicked by using the Event Listener's special parameter & the "target" property.
       var theCanvasThatWasClicked = event.target;
@@ -201,6 +248,7 @@
           // We want to be able to hit the monster only when it's jumping, not when it's hiding.
           if (monster.state === monster.JUMPING) {
             monster.state = monster.HIT;
+            monstersHit++;
           }
         }
       }
@@ -222,6 +270,9 @@
           0, 0, SIZE, SIZE
         );
       }
+
+      // Display the game status.
+      output.innerHTML = 'Monsters smashed: ' + monstersHit + ', Time left: ' + gameTimer.time;
     };
   </script>
 </body>
